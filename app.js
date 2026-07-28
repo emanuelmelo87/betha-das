@@ -1,15 +1,16 @@
 /**
  * app.js — Controlador de Interface e Fluxo de Primeiro Acesso & Painel DAS
+ * Inclui o Módulo de Remuneração Variável (RV) conforme norma CM-POL-Q-001.
  */
 
 document.addEventListener('DOMContentLoaded', () => {
   // Estado global do fluxo
   const state = {
-    step: 1, // 1: E-mail, 2: OTP, 3: Criar Senha, 4: Sucesso/Conclusão
+    step: 1,
     email: '',
     otpGerado: '',
     employeeData: null,
-    modoLogin: false // false: Primeiro Acesso, true: Login Regular
+    modoLogin: false
   };
 
   // Elementos DOM principais
@@ -31,7 +32,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const inputOtp = document.getElementById('inputOtp');
   const btnStep2Next = document.getElementById('btnStep2Next');
   const btnResendOtp = document.getElementById('btnResendOtp');
-  const otpHintBox = document.getElementById('otpHintBox');
   const otpCodeSpan = document.getElementById('otpCodeSpan');
 
   const inputSenha = document.getElementById('inputSenha');
@@ -49,7 +49,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const btnDoLogin = document.getElementById('btnDoLogin');
   const loginErrorMsg = document.getElementById('loginErrorMsg');
 
-  // Alternadores de Modo (Primeiro Acesso vs Login)
+  // Alternadores de Modo
   const linkSwitchToLogin = document.getElementById('linkSwitchToLogin');
   const linkSwitchToFirstAccess = document.getElementById('linkSwitchToFirstAccess');
 
@@ -57,7 +57,7 @@ document.addEventListener('DOMContentLoaded', () => {
   checkExistingSession();
 
   // ------------------------------------------------------------------
-  // 1. ALTERNÂNCIA DE MODOS (PRIMEIRO ACESSO vs LOGIN REGULAR)
+  // 1. ALTERNÂNCIA DE MODOS
   // ------------------------------------------------------------------
   if (linkSwitchToLogin) {
     linkSwitchToLogin.addEventListener('click', (e) => {
@@ -106,7 +106,6 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
-    // Verificar no banco de dados local se o colaborador já concluiu o primeiro acesso
     const emp = window.bethaDB.findByEmail(email);
     if (emp && emp.primeiroAcessoConcluido) {
       emailErrorMsg.textContent = 'Este e-mail já realizou o Primeiro Acesso. Utilize a opção "Já tenho senha / Entrar".';
@@ -116,11 +115,9 @@ document.addEventListener('DOMContentLoaded', () => {
     state.email = email;
     state.employeeData = emp;
 
-    // Gerar código OTP de teste (6 dígitos)
     state.otpGerado = Math.floor(100000 + Math.random() * 900000).toString();
     otpCodeSpan.textContent = state.otpGerado;
 
-    // Transitar para o Passo 2
     goToStep(2);
     showToast('Código de verificação enviado para ' + email);
   }
@@ -176,15 +173,15 @@ document.addEventListener('DOMContentLoaded', () => {
     strengthBarFill.style.width = score + '%';
 
     if (score <= 25) {
-      strengthBarFill.style.backgroundColor = '#d32f2f'; // Vermelho
+      strengthBarFill.style.backgroundColor = '#d32f2f';
       strengthText.textContent = 'Força da senha: Fraca (Mínimo 8 caracteres)';
       strengthText.style.color = '#d32f2f';
     } else if (score <= 75) {
-      strengthBarFill.style.backgroundColor = '#ed6c02'; // Laranja
+      strengthBarFill.style.backgroundColor = '#ed6c02';
       strengthText.textContent = 'Força da senha: Média (Adicione letras maiúsculas e símbolos)';
       strengthText.style.color = '#ed6c02';
     } else {
-      strengthBarFill.style.backgroundColor = '#2e7d32'; // Verde
+      strengthBarFill.style.backgroundColor = '#2e7d32';
       strengthText.textContent = 'Força da senha: Forte e Segura!';
       strengthText.style.color = '#2e7d32';
     }
@@ -219,7 +216,6 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
-    // Salvar no banco de dados individualizado
     const updatedEmployee = window.bethaDB.concluirPrimeiroAcesso(state.email, pwd, {
       nome: state.employeeData ? state.employeeData.nome : null,
       cargo: state.employeeData ? state.employeeData.cargo : null,
@@ -228,7 +224,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     state.employeeData = updatedEmployee;
 
-    // Transitar para o Passo 4 (Sucesso)
     goToStep(4);
     renderSuccessStepDetails(updatedEmployee);
   }
@@ -255,7 +250,6 @@ document.addEventListener('DOMContentLoaded', () => {
   // ------------------------------------------------------------------
   if (btnGoToDashboard) {
     btnGoToDashboard.addEventListener('click', () => {
-      // Definir sessão ativa para o colaborador recém-cadastrado
       window.bethaDB.setSession(state.employeeData);
       showDashboard(state.employeeData);
     });
@@ -293,7 +287,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // ------------------------------------------------------------------
-  // 7. EXIBIÇÃO E RENDERIZAÇÃO DO DASHBOARD INDIVIDUALIZADO
+  // 7. DASHBOARD E MÓDULO DE REMUNERAÇÃO VARIÁVEL (RV CM-POL-Q-001)
   // ------------------------------------------------------------------
   function showDashboard(emp) {
     viewFirstAccess.style.display = 'none';
@@ -317,7 +311,6 @@ document.addEventListener('DOMContentLoaded', () => {
       </button>
     `;
 
-    // Se for superadmin, adiciona o link no menu lateral também
     const sidebarAdminLink = document.getElementById('sidebarAdminLink');
     if (sidebarAdminLink) {
       sidebarAdminLink.style.display = isSuper ? 'block' : 'none';
@@ -328,7 +321,7 @@ document.addEventListener('DOMContentLoaded', () => {
       window.location.reload();
     });
 
-    // Preencher as informações individualizadas do Colaborador no Painel
+    // Preencher Meus Dados
     document.getElementById('dashNomeColaborador').textContent = emp.nome;
     document.getElementById('dashEmailColaborador').textContent = emp.email;
     document.getElementById('dashCargoColaborador').textContent = emp.cargo;
@@ -337,17 +330,96 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('dashTelefoneColaborador').textContent = emp.telefone || '(48) 99812-3456';
     document.getElementById('dashUnidadeColaborador').textContent = emp.unidade || 'Matriz DAS';
 
+    // Renderizar Módulo de Remuneração Variável (RV)
+    renderModuloRV(emp);
+
     // Renderizar tabela de números de atendimento
     renderNumbersTable(emp.numerosAtendimento || []);
 
     showToast('Bem-vindo ao Portal Colaborador DAS, ' + emp.nome + '!');
   }
 
+  /**
+   * Renderiza os indicadores visuais e o cálculo da RV de acordo com a norma CM-POL-Q-001
+   */
+  function renderModuloRV(emp) {
+    const rvAtual = emp.rvAtual || { csat: 94, horasProdutivas: 95, metaCsat: 93, metaHoras: 90 };
+    const tetoSemestral = emp.tetoSemestralRV || 1430.00;
+
+    // Atualizar Teto semestral no topo
+    document.getElementById('rvTetoValor').textContent = 'R$ ' + tetoSemestral.toLocaleString('pt-BR', { minimumFractionDigits: 2 });
+
+    // CSAT
+    document.getElementById('rvCsatRealizado').textContent = rvAtual.csat + '%';
+    const csatSuperado = rvAtual.csat > (rvAtual.metaCsat || 93);
+    const badgeCsat = document.getElementById('badgeStatusCsat');
+    badgeCsat.textContent = csatSuperado ? 'Superado' : 'Abaixo da Meta';
+    badgeCsat.className = 'rv-badge-status ' + (csatSuperado ? 'superado' : 'nao-superado');
+    const barCsat = document.getElementById('barCsat');
+    barCsat.style.width = Math.min(rvAtual.csat, 100) + '%';
+    barCsat.style.backgroundColor = csatSuperado ? '#2e7d32' : '#d32f2f';
+
+    // HORAS PRODUTIVAS
+    document.getElementById('rvHorasRealizado').textContent = rvAtual.horasProdutivas + '%';
+    const horasSuperado = rvAtual.horasProdutivas > (rvAtual.metaHoras || 90);
+    const badgeHoras = document.getElementById('badgeStatusHoras');
+    badgeHoras.textContent = horasSuperado ? 'Superado' : 'Abaixo da Meta';
+    badgeHoras.className = 'rv-badge-status ' + (horasSuperado ? 'superado' : 'nao-superado');
+    const barHoras = document.getElementById('barHoras');
+    barHoras.style.width = Math.min(rvAtual.horasProdutivas, 100) + '%';
+    barHoras.style.backgroundColor = horasSuperado ? '#2e7d32' : '#d32f2f';
+
+    // Tabela de Histórico e Cálculo Semestral (Julho a Dezembro)
+    renderTabelaHistoricoRV(emp);
+  }
+
+  function renderTabelaHistoricoRV(emp) {
+    const tbody = document.getElementById('tblHistoricoRvBody');
+    if (!tbody) return;
+
+    const historico = emp.rvHistorico || [];
+    const tetoSemestral = emp.tetoSemestralRV || 1430.00;
+    const tetoMensal = tetoSemestral / 6;
+
+    let totalSemestre = 0;
+
+    tbody.innerHTML = historico.map(item => {
+      // Fórmula oficial: RV Individual = (TetoMensal * 0.25) * (% RV Individual)
+      const valorIndividual = (tetoMensal * 0.25) * (item.rvIndividualPercent / 100);
+      // RV Coletiva = (TetoMensal * 0.75) * (% RV Coletiva)
+      const valorColetivo = (tetoMensal * 0.75) * (item.rvColetivoPercent / 100);
+      const valorTotalMes = valorIndividual + valorColetivo;
+
+      totalSemestre += valorTotalMes;
+
+      return `
+        <tr>
+          <td style="font-weight:700; color:#1e2b4d;">${item.mes}</td>
+          <td>
+            <span style="font-weight:600; color:${item.rvIndividualPercent > 0 ? '#2e7d32' : '#888'};">${item.rvIndividualPercent}%</span>
+            <div style="font-size:0.72rem; color:#888;">CSAT: ${item.csat}% | Horas: ${item.horas}%</div>
+          </td>
+          <td>
+            <span style="font-weight:600; color:${item.rvColetivoPercent > 0 ? '#1976d2' : '#888'};">${item.rvColetivoPercent}%</span>
+            <div style="font-size:0.72rem; color:#888;">Portfólio & Implantação</div>
+          </td>
+          <td style="font-size:0.78rem; color:#666;">
+            (R$ ${(tetoMensal * 0.25).toFixed(2)} &times; ${item.rvIndividualPercent}%) + (R$ ${(tetoMensal * 0.75).toFixed(2)} &times; ${item.rvColetivoPercent}%)
+          </td>
+          <td style="font-weight:700; color:#1e2b4d;">
+            R$ ${valorTotalMes.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+          </td>
+        </tr>
+      `;
+    }).join('');
+
+    document.getElementById('rvTotalSemestreAcumulado').textContent = 'R$ ' + totalSemestre.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
+
   function renderNumbersTable(numeros) {
     const container = document.getElementById('numbersTableBody');
     if (!container) return;
 
-    // Junta números coletivos gerais com os específicos do colaborador
     const globais = window.bethaDB.getNumerosGlobais();
     const todosNumeros = [...globais, ...numeros];
 
@@ -382,7 +454,6 @@ document.addEventListener('DOMContentLoaded', () => {
   function goToStep(stepNum) {
     state.step = stepNum;
 
-    // Atualizar visual dos passos
     for (let i = 1; i <= 4; i++) {
       const stepItem = document.getElementById('stepItem' + i);
       const container = document.getElementById('stepContainer' + i);
@@ -422,7 +493,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }, 3500);
   }
 
-  // Busca em tempo real na tabela de números
   const searchInput = document.getElementById('dashSearchInput');
   if (searchInput) {
     searchInput.addEventListener('input', (e) => {

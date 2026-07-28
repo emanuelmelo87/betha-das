@@ -14,7 +14,6 @@
   <!-- Estilos Corporativos DAS -->
   <link rel="stylesheet" href="styles.css" />
   <style>
-    /* Estilos Adicionais do Painel Admin */
     .admin-badge {
       background: #d32f2f;
       color: #ffffff;
@@ -77,6 +76,13 @@
       border-color: #1976d2;
       color: #1976d2;
     }
+    .action-btn-sm.rv {
+      border-color: #2e7d32;
+      color: #2e7d32;
+    }
+    .action-btn-sm.rv:hover {
+      background: #e8f5e9;
+    }
     .action-btn-sm.danger:hover {
       background: #ffebee;
       border-color: #d32f2f;
@@ -118,7 +124,7 @@
         <li class="sidebar-item active" id="tabColaboradoresBtn">
           <a href="#" onclick="switchAdminTab('colaboradores'); return false;">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8"/></svg>
-            <span>Colaboradores</span>
+            <span>Colaboradores & RV</span>
           </a>
         </li>
         <li class="sidebar-item" id="tabNumerosBtn">
@@ -166,16 +172,15 @@
         </div>
       </div>
 
-      <!-- ABA 1: TABELA DE COLABORADORES -->
+      <!-- ABA 1: TABELA DE COLABORADORES & LANÇAMENTO DE RV -->
       <section id="adminSecColaboradores" style="display: flex; flex-direction: column; gap: 20px;">
         <div class="page-title-row">
           <div>
-            <h1 class="page-title">Gerenciamento de Colaboradores</h1>
-            <p class="page-subtitle">Pré-cadastre colaboradores, edite informações contratuais e resete senhas.</p>
+            <h1 class="page-title">Gerenciamento de Colaboradores & Remuneração Variável</h1>
+            <p class="page-subtitle">Pré-cadastre colaboradores, edite informações contratuais e lance as metas de RV (CM-POL-Q-001).</p>
           </div>
           <button class="btn-primary" onclick="openModalNovoColaborador()">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-            NOVO COLABORADOR
+            + NOVO COLABORADOR
           </button>
         </div>
 
@@ -186,7 +191,6 @@
               <svg class="search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
             </div>
             <button class="btn-outline" onclick="carregarTabelaColaboradores()">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
               Atualizar Dados
             </button>
           </div>
@@ -196,7 +200,8 @@
               <tr>
                 <th>NOME / E-MAIL</th>
                 <th>CARGO / GESTOR</th>
-                <th>DEPARTAMENTO / RAMAL</th>
+                <th>RV ATUAL (CSAT / HORAS)</th>
+                <th>TETO SEMESTRAL</th>
                 <th>1º ACESSO</th>
                 <th>AÇÕES</th>
               </tr>
@@ -252,7 +257,7 @@
             <label class="form-label" for="inputFirebaseUrl">URL do Firebase Realtime Database</label>
             <input type="text" id="inputFirebaseUrl" class="form-control" placeholder="https://seu-projeto-default-rtdb.firebaseio.com" />
             <div style="font-size:0.8rem; color:#666; margin-top:6px;">
-              Insira a URL raiz do seu Realtime Database do Firebase. Todas as gravações de colaboradores e senhas serão sincronizadas instantaneamente nesta URL.
+              Insira a URL raiz do seu Realtime Database do Firebase. Todas as gravações de colaboradores, senhas e métricas de RV serão sincronizadas nesta URL.
             </div>
           </div>
 
@@ -263,6 +268,44 @@
       </section>
 
     </main>
+  </div>
+
+  <!-- MODAL: LANÇAMENTO DE REMUNERAÇÃO VARIÁVEL (RV CM-POL-Q-001) -->
+  <div class="modal-overlay" id="modalRv">
+    <div class="modal-card">
+      <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #e0e0e0; padding-bottom:12px;">
+        <h3 style="font-size:1.1rem; font-weight:700; color:#1e2b4d;" id="modalRvTitle">Lançamento de Remuneração Variável (RV)</h3>
+        <button onclick="closeModalRv()" style="background:none; border:none; font-size:1.2rem; cursor:pointer;">&times;</button>
+      </div>
+
+      <form id="formRv" style="display:flex; flex-direction:column; gap:14px;">
+        <input type="hidden" id="rvEmpId" />
+
+        <div style="background:#eef5fc; padding:12px; border-radius:6px; font-size:0.85rem; color:#1976d2; font-weight:500;">
+          Política CM-POL-Q-001 · Atualize os percentuais de atingimento mensal do colaborador.
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">CSAT - Qualidade Percebida (Meta: > 93%)</label>
+          <input type="number" step="0.1" id="modalCsat" class="form-control" placeholder="ex: 94.0" required />
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Apontamento de Horas Produtivas (Meta: > 90%)</label>
+          <input type="number" step="0.1" id="modalHoras" class="form-control" placeholder="ex: 95.0" required />
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Teto Semestral de RV (R$)</label>
+          <input type="number" step="0.01" id="modalTetoRv" class="form-control" placeholder="ex: 1430.00" required />
+        </div>
+
+        <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:10px;">
+          <button type="button" class="btn-outline" onclick="closeModalRv()">Cancelar</button>
+          <button type="submit" class="btn-primary" style="background:#2e7d32;">ATUALIZAR RV</button>
+        </div>
+      </form>
+    </div>
   </div>
 
   <!-- MODAL: NOVO / EDITAR COLABORADOR -->
@@ -306,6 +349,11 @@
             <label class="form-label">Telefone / Contato</label>
             <input type="text" id="modalTelefone" class="form-control" placeholder="(48) 99812-3456" />
           </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Teto Semestral de RV (R$)</label>
+          <input type="number" step="0.01" id="modalTetoSemestralRV" class="form-control" placeholder="1430.00" value="1430.00" />
         </div>
 
         <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:10px;">
@@ -355,14 +403,7 @@
   <!-- SCRIPTS -->
   <script src="db.js"></script>
   <script>
-    // Controlador do Painel Administrador (admin.html)
     document.addEventListener('DOMContentLoaded', () => {
-      // Verificar se a sessão é de superadmin ou redirecionar
-      const user = window.bethaDB.getSession();
-      if (!user || user.email.toLowerCase() !== 'emanuel.alexandre@betha.com.br') {
-        // Se ainda não logou no Primeiro Acesso como Superadmin, permite carregar se tiver o e-mail preenchido ou solicita autenticação
-      }
-
       carregarMétricas();
       carregarTabelaColaboradores();
       carregarTabelaNumeros();
@@ -382,7 +423,6 @@
         window.location.href = 'index.html';
       });
 
-      // Submit do form de colaborador
       document.getElementById('formColaborador').addEventListener('submit', (e) => {
         e.preventDefault();
         const id = document.getElementById('editEmpId').value;
@@ -392,7 +432,8 @@
           cargo: document.getElementById('modalCargo').value,
           gestor: document.getElementById('modalGestor').value,
           departamento: document.getElementById('modalDepartamento').value,
-          telefone: document.getElementById('modalTelefone').value
+          telefone: document.getElementById('modalTelefone').value,
+          tetoSemestralRV: parseFloat(document.getElementById('modalTetoSemestralRV').value) || 1430.00
         };
 
         try {
@@ -409,7 +450,19 @@
         }
       });
 
-      // Submit do form de número
+      document.getElementById('formRv').addEventListener('submit', (e) => {
+        e.preventDefault();
+        const id = document.getElementById('rvEmpId').value;
+        window.bethaDB.adminAtualizarRvColaborador(id, {
+          csat: document.getElementById('modalCsat').value,
+          horasProdutivas: document.getElementById('modalHoras').value,
+          tetoSemestralRV: document.getElementById('modalTetoRv').value
+        });
+        closeModalRv();
+        carregarTabelaColaboradores();
+        alert('Remuneração Variável (RV) do colaborador atualizada com sucesso!');
+      });
+
       document.getElementById('formNumero').addEventListener('submit', (e) => {
         e.preventDefault();
         window.bethaDB.adminAdicionarNumeroGlobal({
@@ -422,7 +475,6 @@
         carregarTabelaNumeros();
       });
 
-      // Busca na tabela admin
       document.getElementById('adminSearchInput').addEventListener('input', (e) => {
         const query = e.target.value.toLowerCase();
         const rows = document.querySelectorAll('#tblAdminColaboradoresBody tr');
@@ -447,34 +499,42 @@
       const tbody = document.getElementById('tblAdminColaboradoresBody');
       const emps = window.bethaDB.getAllLocalEmployees();
 
-      tbody.innerHTML = emps.map(e => `
-        <tr>
-          <td>
-            <div style="font-weight:700; color:#1e2b4d;">${e.nome} ${e.isSuperAdmin ? '<span class="admin-badge" style="font-size:0.65rem;">ADMIN</span>' : ''}</div>
-            <div style="font-size:0.8rem; color:#666;">${e.email}</div>
-          </td>
-          <td>
-            <div style="font-weight:600;">${e.cargo}</div>
-            <div style="font-size:0.78rem; color:#888;">Gestor: ${e.gestor}</div>
-          </td>
-          <td>
-            <div>${e.departamento}</div>
-            <div style="font-size:0.78rem; color:#888;">${e.telefone || '--'}</div>
-          </td>
-          <td>
-            <span class="status-pill ${e.primeiroAcessoConcluido ? 'concluido' : 'pendente'}">
-              ${e.primeiroAcessoConcluido ? 'Concluído' : 'Pendente'}
-            </span>
-          </td>
-          <td>
-            <div style="display:flex; gap:6px;">
-              <button class="action-btn-sm" onclick="editarColaborador('${e.id}')">Editar</button>
-              <button class="action-btn-sm" onclick="resetarSenha('${e.id}')">Reset Senha</button>
-              ${!e.isSuperAdmin ? `<button class="action-btn-sm danger" onclick="excluirColaborador('${e.id}')">Excluir</button>` : ''}
-            </div>
-          </td>
-        </tr>
-      `).join('');
+      tbody.innerHTML = emps.map(e => {
+        const rv = e.rvAtual || { csat: 94, horasProdutivas: 95 };
+        const teto = e.tetoSemestralRV || 1430.00;
+        return `
+          <tr>
+            <td>
+              <div style="font-weight:700; color:#1e2b4d;">${e.nome} ${e.isSuperAdmin ? '<span class="admin-badge" style="font-size:0.65rem;">ADMIN</span>' : ''}</div>
+              <div style="font-size:0.8rem; color:#666;">${e.email}</div>
+            </td>
+            <td>
+              <div style="font-weight:600;">${e.cargo}</div>
+              <div style="font-size:0.78rem; color:#888;">Gestor: ${e.gestor}</div>
+            </td>
+            <td>
+              <div style="font-weight:600; color:#1976d2;">CSAT: ${rv.csat}% | Horas: ${rv.horasProdutivas}%</div>
+              <div style="font-size:0.75rem; color:${rv.csat >= 93 ? '#2e7d32' : '#d32f2f'};">${rv.csat >= 93 ? 'Meta CSAT Atingida' : 'Abaixo da Meta CSAT'}</div>
+            </td>
+            <td style="font-weight:700; color:#1e2b4d;">
+              R$ ${teto.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+            </td>
+            <td>
+              <span class="status-pill ${e.primeiroAcessoConcluido ? 'concluido' : 'pendente'}">
+                ${e.primeiroAcessoConcluido ? 'Concluído' : 'Pendente'}
+              </span>
+            </td>
+            <td>
+              <div style="display:flex; gap:4px; flex-wrap:wrap;">
+                <button class="action-btn-sm rv" onclick="lancarRv('${e.id}')">Lançar RV</button>
+                <button class="action-btn-sm" onclick="editarColaborador('${e.id}')">Editar</button>
+                <button class="action-btn-sm" onclick="resetarSenha('${e.id}')">Reset</button>
+                ${!e.isSuperAdmin ? `<button class="action-btn-sm danger" onclick="excluirColaborador('${e.id}')">Excluir</button>` : ''}
+              </div>
+            </td>
+          </tr>
+        `;
+      }).join('');
     }
 
     function carregarTabelaNumeros() {
@@ -504,6 +564,25 @@
       document.getElementById('tabFirebaseBtn').classList.toggle('active', tab === 'firebase');
     }
 
+    function lancarRv(id) {
+      const emps = window.bethaDB.getAllLocalEmployees();
+      const emp = emps.find(e => e.id === id);
+      if (!emp) return;
+
+      const rv = emp.rvAtual || { csat: 94, horasProdutivas: 95 };
+      document.getElementById('rvEmpId').value = emp.id;
+      document.getElementById('modalRvTitle').textContent = 'Lançamento de RV: ' + emp.nome;
+      document.getElementById('modalCsat').value = rv.csat;
+      document.getElementById('modalHoras').value = rv.horasProdutivas;
+      document.getElementById('modalTetoRv').value = emp.tetoSemestralRV || 1430.00;
+
+      document.getElementById('modalRv').classList.add('active');
+    }
+
+    function closeModalRv() {
+      document.getElementById('modalRv').classList.remove('active');
+    }
+
     function openModalNovoColaborador() {
       document.getElementById('editEmpId').value = '';
       document.getElementById('modalColaboradorTitle').textContent = 'Novo Colaborador DAS';
@@ -528,6 +607,7 @@
       document.getElementById('modalGestor').value = emp.gestor;
       document.getElementById('modalDepartamento').value = emp.departamento;
       document.getElementById('modalTelefone').value = emp.telefone || '';
+      document.getElementById('modalTetoSemestralRV').value = emp.tetoSemestralRV || 1430.00;
 
       document.getElementById('modalColaborador').classList.add('active');
     }

@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
-  <title>DAS · Portal Colaborador</title>
+  <title>DAS · Portal Colaborador & Remuneração Variável</title>
 
   <!-- Google Fonts: Roboto / Inter -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -13,6 +13,42 @@
 
   <!-- Estilos Corporativos DAS -->
   <link rel="stylesheet" href="styles.css" />
+  <style>
+    /* Estilos Específicos para o Módulo de RV */
+    .rv-metric-card {
+      background: #ffffff;
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 20px 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      box-shadow: var(--shadow-sm);
+    }
+    .rv-badge-status {
+      display: inline-flex;
+      align-items: center;
+      padding: 3px 10px;
+      border-radius: 12px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+    .rv-badge-status.superado { background: #e8f5e9; color: #2e7d32; }
+    .rv-badge-status.nao-superado { background: #ffebee; color: #d32f2f; }
+    
+    .progress-bar-track {
+      width: 100%;
+      height: 10px;
+      background: #e0e0e0;
+      border-radius: 5px;
+      overflow: hidden;
+    }
+    .progress-bar-fill {
+      height: 100%;
+      transition: width 0.4s ease, background-color 0.4s ease;
+    }
+  </style>
 </head>
 <body>
 
@@ -48,19 +84,25 @@
       <div class="sidebar-section-title">Navegação Principal</div>
       <ul class="sidebar-menu">
         <li class="sidebar-item active" id="menuItemAcesso">
-          <a href="#" id="linkMenuPrimeiroAcesso">
+          <a href="#" id="linkMenuPrimeiroAcesso" onclick="switchUserTab('acesso'); return false;">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
             <span>Primeiro Acesso</span>
           </a>
         </li>
         <li class="sidebar-item" id="menuItemDados">
-          <a href="#" id="linkMenuDados">
+          <a href="#" id="linkMenuDados" onclick="switchUserTab('dados'); return false;">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="4" width="18" height="16" rx="2"/><line x1="7" y1="8" x2="17" y2="8"/><line x1="7" y1="12" x2="13" y2="12"/></svg>
             <span>Meus Dados</span>
           </a>
         </li>
+        <li class="sidebar-item" id="menuItemRv">
+          <a href="#" id="linkMenuRv" onclick="switchUserTab('rv'); return false;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+            <span>Remuneração Variável (RV)</span>
+          </a>
+        </li>
         <li class="sidebar-item" id="menuItemNumeros">
-          <a href="#" id="linkMenuNumeros">
+          <a href="#" id="linkMenuNumeros" onclick="switchUserTab('numeros'); return false;">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
             <span>Números Atendimento</span>
           </a>
@@ -73,12 +115,6 @@
           <a href="#">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
             <span>Documentos</span>
-          </a>
-        </li>
-        <li class="sidebar-item">
-          <a href="#">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
-            <span>Ajuda & Ouvidoria</span>
           </a>
         </li>
         <li class="sidebar-item" id="sidebarAdminLink" style="display: none; margin-top: 10px;">
@@ -244,73 +280,191 @@
            TELA 2: PAINEL DO COLABORADOR (DASHBOARD PÓS-LOGIN)
            ========================================================================== -->
       <section id="viewDashboard" style="display: none; flex-direction: column; gap: 28px;">
-        <div class="page-title-row">
-          <div>
-            <h1 class="page-title">Painel do Colaborador DAS</h1>
-            <p class="page-subtitle">Visualize seus dados contratuais individualizados e números de atendimento.</p>
-          </div>
-          <button class="btn-outline">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-            EXPORTAR DADOS
-          </button>
-        </div>
-
-        <!-- CARDS DE INFORMAÇÕES INDIVIDUALIZADAS (BANCO DE DADOS DAS) -->
-        <div class="profile-card-grid">
-          <div class="info-card">
-            <div class="info-card-label">Colaborador / E-mail</div>
-            <div class="info-card-value" id="dashNomeColaborador">--</div>
-            <div class="info-card-sub" id="dashEmailColaborador">--</div>
-          </div>
-
-          <div class="info-card">
-            <div class="info-card-label">Cargo & Gestor Direto</div>
-            <div class="info-card-value" id="dashCargoColaborador">--</div>
-            <div class="info-card-sub">Gestor: <strong id="dashGestorColaborador">--</strong></div>
-          </div>
-
-          <div class="info-card">
-            <div class="info-card-label">Departamento / Unidade</div>
-            <div class="info-card-value" id="dashDeptColaborador">--</div>
-            <div class="info-card-sub" id="dashUnidadeColaborador">--</div>
-          </div>
-
-          <div class="info-card">
-            <div class="info-card-label">Contato & Ramal Interno</div>
-            <div class="info-card-value" id="dashTelefoneColaborador">--</div>
-            <div class="info-card-sub">Matriz DAS</div>
-          </div>
-        </div>
-
-        <!-- CENTRAL DE NÚMEROS DE ATENDIMENTO DAS -->
-        <div class="numbers-table-card">
-          <div style="padding: 20px 24px; border-bottom: 1px solid #e0e0e0; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;">
+        
+        <!-- SEÇÃO A: MEUS DADOS -->
+        <div id="secMeusDados" style="display: flex; flex-direction: column; gap: 24px;">
+          <div class="page-title-row">
             <div>
-              <h2 style="font-size: 1.1rem; font-weight: 700; color: #1e2b4d;">Números de Atendimento DAS</h2>
-              <p style="font-size: 0.82rem; color: #888;">Canais de comunicação e suporte do colaborador.</p>
-            </div>
-
-            <!-- Campo de Busca Underline Clean -->
-            <div class="search-box-container">
-              <input type="text" id="dashSearchInput" class="search-input" placeholder="O que você está buscando?" />
-              <svg class="search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              <h1 class="page-title">Painel do Colaborador DAS</h1>
+              <p class="page-subtitle">Visualize seus dados contratuais individualizados e suporte da empresa.</p>
             </div>
           </div>
 
-          <table class="numbers-table">
-            <thead>
-              <tr>
-                <th>SETOR / SOLUÇÃO DAS</th>
-                <th>TELEFONE DE ATENDIMENTO</th>
-                <th>RAMAL</th>
-                <th>HORÁRIO DE FUNCIONAMENTO</th>
-              </tr>
-            </thead>
-            <tbody id="numbersTableBody">
-              <!-- Renderizado dinamicamente via JS -->
-            </tbody>
-          </table>
+          <div class="profile-card-grid">
+            <div class="info-card">
+              <div class="info-card-label">Colaborador / E-mail</div>
+              <div class="info-card-value" id="dashNomeColaborador">--</div>
+              <div class="info-card-sub" id="dashEmailColaborador">--</div>
+            </div>
+
+            <div class="info-card">
+              <div class="info-card-label">Cargo & Gestor Direto</div>
+              <div class="info-card-value" id="dashCargoColaborador">--</div>
+              <div class="info-card-sub">Gestor: <strong id="dashGestorColaborador">--</strong></div>
+            </div>
+
+            <div class="info-card">
+              <div class="info-card-label">Departamento / Unidade</div>
+              <div class="info-card-value" id="dashDeptColaborador">--</div>
+              <div class="info-card-sub" id="dashUnidadeColaborador">--</div>
+            </div>
+
+            <div class="info-card">
+              <div class="info-card-label">Contato & Ramal Interno</div>
+              <div class="info-card-value" id="dashTelefoneColaborador">--</div>
+              <div class="info-card-sub">Matriz DAS</div>
+            </div>
+          </div>
         </div>
+
+        <!-- SEÇÃO B: MÓDULO DE REMUNERAÇÃO VARIÁVEL (RV CM-POL-Q-001) -->
+        <div id="secRemuneracaoVariavel" style="display: flex; flex-direction: column; gap: 24px;">
+          <div class="page-title-row">
+            <div>
+              <h1 class="page-title" style="color: #1976d2;">Remuneração Variável (RV)</h1>
+              <p class="page-subtitle">Política CM-POL-Q-001 · Acompanhamento de Metas Individuais (25%) e Coletivas (75%)</p>
+            </div>
+            <div style="background: #eef5fc; border: 1px solid #1976d2; padding: 8px 16px; border-radius: 8px; text-align: right;">
+              <div style="font-size: 0.72rem; font-weight: 700; color: #1976d2; text-transform: uppercase;">TETO MÁXIMO SEMESTRAL</div>
+              <div style="font-size: 1.15rem; font-weight: 800; color: #1e2b4d;" id="rvTetoValor">R$ 1.430,00</div>
+            </div>
+          </div>
+
+          <!-- INDICADORES INDIVIDUAIS (25%) -->
+          <div>
+            <h3 style="font-size: 1rem; font-weight: 700; color: #1e2b4d; margin-bottom: 12px;">1. Indicadores Individuais (Peso 25% da RV Total)</h3>
+            <div class="profile-card-grid">
+              
+              <!-- CSAT -->
+              <div class="rv-metric-card">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                  <span class="info-card-label">Qualidade Percebida (CSAT)</span>
+                  <span class="rv-badge-status superado" id="badgeStatusCsat">Superado</span>
+                </div>
+                <div style="display: flex; align-items: baseline; gap: 8px;">
+                  <span style="font-size: 1.6rem; font-weight: 800; color: #1e2b4d;" id="rvCsatRealizado">94%</span>
+                  <span style="font-size: 0.84rem; color: #666;">(Meta: > 93%)</span>
+                </div>
+                <div class="progress-bar-track">
+                  <div class="progress-bar-fill" id="barCsat" style="width: 94%; background: #2e7d32;"></div>
+                </div>
+                <div style="font-size: 0.75rem; color: #888;">Peso na RV Individual: <strong>70%</strong> · Fonte: Jira Atendimento</div>
+              </div>
+
+              <!-- HORAS PRODUTIVAS -->
+              <div class="rv-metric-card">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                  <span class="info-card-label">Apontamento de Horas Produtivas</span>
+                  <span class="rv-badge-status superado" id="badgeStatusHoras">Superado</span>
+                </div>
+                <div style="display: flex; align-items: baseline; gap: 8px;">
+                  <span style="font-size: 1.6rem; font-weight: 800; color: #1e2b4d;" id="rvHorasRealizado">95%</span>
+                  <span style="font-size: 0.84rem; color: #666;">(Meta: > 90%)</span>
+                </div>
+                <div class="progress-bar-track">
+                  <div class="progress-bar-fill" id="barHoras" style="width: 95%; background: #2e7d32;"></div>
+                </div>
+                <div style="font-size: 0.75rem; color: #888;">Peso na RV Individual: <strong>30%</strong> · Fonte: Apontamento Interno</div>
+              </div>
+
+            </div>
+          </div>
+
+          <!-- INDICADORES COLETIVOS (75%) -->
+          <div>
+            <h3 style="font-size: 1rem; font-weight: 700; color: #1e2b4d; margin-bottom: 12px;">2. Indicadores Coletivos da Diretoria (Peso 75% da RV Total)</h3>
+            <div class="profile-card-grid">
+              
+              <div class="rv-metric-card">
+                <span class="info-card-label">Eficiência Operacional (SLO)</span>
+                <div style="font-size: 1.2rem; font-weight: 700; color: #1e2b4d;" id="rvEficColetiva">92% (Atingido)</div>
+                <div style="font-size: 0.78rem; color: #666;">Peso: 15% · Meta > 90% no SLO de dúvidas</div>
+              </div>
+
+              <div class="rv-metric-card">
+                <span class="info-card-label">Tempo Previsto Implantação</span>
+                <div style="font-size: 1.2rem; font-weight: 700; color: #1976d2;" id="rvTempoImpl">Faixa 2 (60% do Teto)</div>
+                <div style="font-size: 0.78rem; color: #666;">Peso: 35% · Superação em 2.5% do prazo</div>
+              </div>
+
+              <div class="rv-metric-card">
+                <span class="info-card-label">Backlog (Suporte & Serviços)</span>
+                <div style="font-size: 1.2rem; font-weight: 700; color: #2e7d32;" id="rvBacklogColetivo">8.5% (Superado)</div>
+                <div style="font-size: 0.78rem; color: #666;">Peso: 15% · Meta: Manter chamados < 10%</div>
+              </div>
+
+              <div class="rv-metric-card">
+                <span class="info-card-label">Receita Operacional Manutenção</span>
+                <div style="font-size: 1.2rem; font-weight: 700; color: #1976d2;" id="rvReceitaColetiva">Faixa 2 (60% do Teto)</div>
+                <div style="font-size: 0.78rem; color: #666;">Peso: 35% · Superação em 5% da meta</div>
+              </div>
+
+            </div>
+          </div>
+
+          <!-- TABELA DE PROJEÇÃO E EXTRATO SEMESTRAL -->
+          <div class="numbers-table-card">
+            <div style="padding: 16px 20px; border-bottom: 1px solid #e0e0e0; display: flex; align-items: center; justify-content: space-between;">
+              <h3 style="font-size: 1rem; font-weight: 700; color: #1e2b4d;">Extrato & Apuração Semestral (Julho a Dezembro)</h3>
+              <span style="font-size: 0.8rem; color: #666;">Pagamento no encerramento do ciclo semestral</span>
+            </div>
+
+            <table class="numbers-table">
+              <thead>
+                <tr>
+                  <th>MÊS</th>
+                  <th>RV INDIVIDUAL (25%)</th>
+                  <th>RV COLETIVA (75%)</th>
+                  <th>APURAÇÃO CALCULADA</th>
+                  <th>VALOR MENSAL ESTIMADO</th>
+                </tr>
+              </thead>
+              <tbody id="tblHistoricoRvBody">
+                <!-- Renderizado via JS -->
+              </tbody>
+              <tfoot>
+                <tr style="background: #f4f5f7; font-weight: 700;">
+                  <td colspan="4" style="text-align: right; padding: 14px 20px;">VALOR TOTAL ACUMULADO NO SEMESTRE:</td>
+                  <td style="font-size: 1.1rem; color: #2e7d32; padding: 14px 20px;" id="rvTotalSemestreAcumulado">R$ 0,00</td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+
+        </div>
+
+        <!-- SEÇÃO C: CENTRAL DE NÚMEROS DE ATENDIMENTO -->
+        <div id="secNumerosAtendimento" style="display: flex; flex-direction: column; gap: 20px;">
+          <div class="numbers-table-card">
+            <div style="padding: 20px 24px; border-bottom: 1px solid #e0e0e0; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;">
+              <div>
+                <h2 style="font-size: 1.1rem; font-weight: 700; color: #1e2b4d;">Números de Atendimento DAS</h2>
+                <p style="font-size: 0.82rem; color: #888;">Canais de comunicação e suporte do colaborador.</p>
+              </div>
+
+              <!-- Campo de Busca Underline Clean -->
+              <div class="search-box-container">
+                <input type="text" id="dashSearchInput" class="search-input" placeholder="O que você está buscando?" />
+                <svg class="search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              </div>
+            </div>
+
+            <table class="numbers-table">
+              <thead>
+                <tr>
+                  <th>SETOR / SOLUÇÃO DAS</th>
+                  <th>TELEFONE DE ATENDIMENTO</th>
+                  <th>RAMAL</th>
+                  <th>HORÁRIO DE FUNCIONAMENTO</th>
+                </tr>
+              </thead>
+              <tbody id="numbersTableBody">
+                <!-- Renderizado dinamicamente via JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
       </section>
 
     </main>
@@ -324,5 +478,17 @@
   <!-- SCRIPTS DA APLICAÇÃO -->
   <script src="db.js"></script>
   <script src="app.js"></script>
+  <script>
+    function switchUserTab(tab) {
+      document.getElementById('secMeusDados').style.display = (tab === 'dados' || tab === 'acesso') ? 'flex' : 'none';
+      document.getElementById('secRemuneracaoVariavel').style.display = tab === 'rv' ? 'flex' : 'none';
+      document.getElementById('secNumerosAtendimento').style.display = (tab === 'numeros' || tab === 'dados') ? 'flex' : 'none';
+
+      document.getElementById('menuItemAcesso').classList.toggle('active', tab === 'acesso');
+      document.getElementById('menuItemDados').classList.toggle('active', tab === 'dados');
+      document.getElementById('menuItemRv').classList.toggle('active', tab === 'rv');
+      document.getElementById('menuItemNumeros').classList.toggle('active', tab === 'numeros');
+    }
+  </script>
 </body>
 </html>
