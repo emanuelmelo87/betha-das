@@ -1,13 +1,13 @@
 /**
- * db.js — Módulo de Banco de Dados do Portal Colaborador Betha
+ * db.js — Módulo de Banco de Dados do Portal Colaborador DAS
  * Armazena e gerencia informações individualizadas de cada colaborador
  * (Cargo, Gestor, E-mail, Número de Contato, Departamento, Status de Primeiro Acesso e Senha)
  */
 
-const BETHA_DB_KEY = 'betha_colaboradores_db_v1';
-const BETHA_SESSION_KEY = 'betha_colaborador_session_v1';
+const DAS_DB_KEY = 'das_colaboradores_db_v1';
+const DAS_SESSION_KEY = 'das_colaborador_session_v1';
 
-// Base de dados inicial de colaboradores da Betha Sistemas
+// Base de dados inicial de colaboradores DAS
 const DEFAULT_EMPLOYEES = [
   {
     id: 'emp_001',
@@ -18,13 +18,13 @@ const DEFAULT_EMPLOYEES = [
     departamento: 'Gente & Gestão',
     telefone: '(48) 99812-3456',
     ramal: '4003-8877 Ramal 204',
-    unidade: 'Matriz - Criciúma/SC',
+    unidade: 'Matriz DAS',
     primeiroAcessoConcluido: false,
     senha: '',
     numerosAtendimento: [
-      { setor: 'Suporte Ponto', telefone: '(48) 3431-8800', ramal: '101', horario: '08:00 - 18:00' },
+      { setor: 'Suporte Ponto DAS', telefone: '(48) 3431-8800', ramal: '101', horario: '08:00 - 18:00' },
       { setor: 'Gente & Gestão (RH)', telefone: '(48) 3431-8812', ramal: '204', horario: '08:00 - 17:30' },
-      { setor: 'Service Desk TI', telefone: '(48) 3431-8850', ramal: '500', horario: '24h Plantão' }
+      { setor: 'Service Desk TI DAS', telefone: '(48) 3431-8850', ramal: '500', horario: '24h Plantão' }
     ]
   },
   {
@@ -36,11 +36,11 @@ const DEFAULT_EMPLOYEES = [
     departamento: 'Tecnologia & Inovação',
     telefone: '(48) 99765-4321',
     ramal: '4003-8877 Ramal 312',
-    unidade: 'Filial - Florianópolis/SC',
+    unidade: 'Filial DAS',
     primeiroAcessoConcluido: false,
     senha: '',
     numerosAtendimento: [
-      { setor: 'Suporte Sistemas', telefone: '(48) 3431-8820', ramal: '312', horario: '08:30 - 18:00' },
+      { setor: 'Suporte Sistemas DAS', telefone: '(48) 3431-8820', ramal: '312', horario: '08:30 - 18:00' },
       { setor: 'DevOps & Infra', telefone: '(48) 3431-8855', ramal: '505', horario: '24h Plantão' }
     ]
   },
@@ -53,22 +53,22 @@ const DEFAULT_EMPLOYEES = [
     departamento: 'Serviços & Operações',
     telefone: '(48) 99123-8899',
     ramal: '4003-8877 Ramal 115',
-    unidade: 'Matriz - Criciúma/SC',
+    unidade: 'Matriz DAS',
     primeiroAcessoConcluido: false,
     senha: '',
     numerosAtendimento: [
-      { setor: 'Central de Atendimento', telefone: '(48) 3431-8800', ramal: '100', horario: '08:00 - 18:00' }
+      { setor: 'Central de Atendimento DAS', telefone: '(48) 3431-8800', ramal: '100', horario: '08:00 - 18:00' }
     ]
   }
 ];
 
-class BethaDB {
+class DasDB {
   constructor() {
     this.init();
   }
 
   init() {
-    const data = localStorage.getItem(BETHA_DB_KEY);
+    const data = localStorage.getItem(DAS_DB_KEY);
     if (!data) {
       this.saveAll(DEFAULT_EMPLOYEES);
     }
@@ -76,7 +76,7 @@ class BethaDB {
 
   getAll() {
     try {
-      const data = localStorage.getItem(BETHA_DB_KEY);
+      const data = localStorage.getItem(DAS_DB_KEY);
       return data ? JSON.parse(data) : DEFAULT_EMPLOYEES;
     } catch (e) {
       console.error('Erro ao ler do banco de dados local:', e);
@@ -85,7 +85,7 @@ class BethaDB {
   }
 
   saveAll(employees) {
-    localStorage.setItem(BETHA_DB_KEY, JSON.stringify(employees));
+    localStorage.setItem(DAS_DB_KEY, JSON.stringify(employees));
   }
 
   findByEmail(email) {
@@ -118,19 +118,19 @@ class BethaDB {
         id: 'emp_' + Date.now(),
         email: cleanEmail,
         nome: dadosAdicionais.nome || cleanEmail.split('@')[0].replace('.', ' ').replace(/\b\w/g, l => l.toUpperCase()),
-        cargo: dadosAdicionais.cargo || 'Colaborador Betha',
+        cargo: dadosAdicionais.cargo || 'Colaborador DAS',
         gestor: dadosAdicionais.gestor || 'Roberto Almeida',
-        departamento: dadosAdicionais.departamento || 'Betha Sistemas',
+        departamento: dadosAdicionais.departamento || 'DAS Portal',
         telefone: dadosAdicionais.telefone || '(48) 99812-3456',
         ramal: 'Ramal ' + Math.floor(100 + Math.random() * 900),
-        unidade: 'Matriz - Criciúma/SC',
+        unidade: 'Matriz DAS',
         primeiroAcessoConcluido: true,
         senha: novaSenha,
         dataPrimeiroAcesso: new Date().toISOString(),
         numerosAtendimento: [
-          { setor: 'Atendimento Geral', telefone: '(48) 3431-8800', ramal: '100', horario: '08:00 - 18:00' },
+          { setor: 'Atendimento Geral DAS', telefone: '(48) 3431-8800', ramal: '100', horario: '08:00 - 18:00' },
           { setor: 'Gente & Gestão (RH)', telefone: '(48) 3431-8812', ramal: '204', horario: '08:00 - 17:30' },
-          { setor: 'Service Desk TI', telefone: '(48) 3431-8850', ramal: '500', horario: '24h Plantão' }
+          { setor: 'Service Desk TI DAS', telefone: '(48) 3431-8850', ramal: '500', horario: '24h Plantão' }
         ]
       };
       employees.push(employee);
@@ -143,7 +143,7 @@ class BethaDB {
   autenticar(email, senha) {
     const employee = this.findByEmail(email);
     if (!employee) {
-      return { success: false, message: 'E-mail não cadastrado na base da Betha Sistemas.' };
+      return { success: false, message: 'E-mail não cadastrado na base DAS.' };
     }
     if (!employee.primeiroAcessoConcluido) {
       return { success: false, requireFirstAccess: true, message: 'Você ainda não concluiu o Primeiro Acesso. Por favor, crie sua senha.' };
@@ -157,7 +157,7 @@ class BethaDB {
   }
 
   setSession(employee) {
-    localStorage.setItem(BETHA_SESSION_KEY, JSON.stringify({
+    localStorage.setItem(DAS_SESSION_KEY, JSON.stringify({
       employee,
       timestamp: Date.now()
     }));
@@ -165,7 +165,7 @@ class BethaDB {
 
   getSession() {
     try {
-      const data = localStorage.getItem(BETHA_SESSION_KEY);
+      const data = localStorage.getItem(DAS_SESSION_KEY);
       if (!data) return null;
       const session = JSON.parse(data);
       if (Date.now() - session.timestamp > 24 * 60 * 60 * 1000) {
@@ -179,8 +179,8 @@ class BethaDB {
   }
 
   clearSession() {
-    localStorage.removeItem(BETHA_SESSION_KEY);
+    localStorage.removeItem(DAS_SESSION_KEY);
   }
 }
 
-window.bethaDB = new BethaDB();
+window.bethaDB = new DasDB();

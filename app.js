@@ -1,6 +1,6 @@
 /**
  * app.js — Controlador de Interface e Fluxo de Primeiro Acesso
- * Portal Colaborador Betha Sistemas
+ * Portal Colaborador DAS
  */
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -86,7 +86,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // ------------------------------------------------------------------
-  // 2. ETAPA 1: VALIDAÇÃO DE E-MAIL BETHA
+  // 2. ETAPA 1: VALIDAÇÃO DE E-MAIL CORPORATIVO
   // ------------------------------------------------------------------
   if (btnStep1Next) {
     btnStep1Next.addEventListener('click', handleStep1);
@@ -108,7 +108,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     if (!email.endsWith('@betha.com.br') && !email.endsWith('@betha.com')) {
-      emailErrorMsg.textContent = 'O e-mail deve pertencer ao domínio corporativo @betha.com.br';
+      emailErrorMsg.textContent = 'O e-mail deve pertencer ao domínio corporativo autorizado.';
       return;
     }
 
@@ -246,7 +246,7 @@ document.addEventListener('DOMContentLoaded', () => {
         <div style="background:#f4f5f7; border:1px solid #e0e0e0; padding:16px; border-radius:8px; text-align:left; font-size:0.9rem; margin-top:12px;">
           <div style="font-weight:700; color:#1976d2; margin-bottom:6px;">Perfil Cadastrado com Sucesso:</div>
           <div><strong>Colaborador:</strong> ${emp.nome}</div>
-          <div><strong>E-mail Betha:</strong> ${emp.email}</div>
+          <div><strong>E-mail:</strong> ${emp.email}</div>
           <div><strong>Cargo:</strong> ${emp.cargo}</div>
           <div><strong>Gestor Direto:</strong> ${emp.gestor}</div>
           <div><strong>Departamento:</strong> ${emp.departamento}</div>
@@ -331,12 +331,12 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('dashGestorColaborador').textContent = emp.gestor;
     document.getElementById('dashDeptColaborador').textContent = emp.departamento;
     document.getElementById('dashTelefoneColaborador').textContent = emp.telefone || '(48) 99812-3456';
-    document.getElementById('dashUnidadeColaborador').textContent = emp.unidade || 'Matriz - Criciúma/SC';
+    document.getElementById('dashUnidadeColaborador').textContent = emp.unidade || 'Matriz DAS';
 
     // Renderizar tabela de números de atendimento
     renderNumbersTable(emp.numerosAtendimento || []);
 
-    showToast('Bem-vindo ao Portal Colaborador Betha, ' + emp.nome + '!');
+    showToast('Bem-vindo ao Portal Colaborador DAS, ' + emp.nome + '!');
   }
 
   function renderNumbersTable(numeros) {
