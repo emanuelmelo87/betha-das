@@ -86,7 +86,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // ------------------------------------------------------------------
-  // 2. ETAPA 1: VALIDAÇÃO DE E-MAIL CORPORATIVO
+  // 2. ETAPA 1: VALIDAÇÃO DE E-MAIL (ACEITA QUALQUER E-MAIL DO USUÁRIO)
   // ------------------------------------------------------------------
   if (btnStep1Next) {
     btnStep1Next.addEventListener('click', handleStep1);
@@ -102,13 +102,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const email = inputEmail.value.trim().toLowerCase();
     emailErrorMsg.textContent = '';
 
-    if (!email) {
-      emailErrorMsg.textContent = 'Por favor, informe seu e-mail institucional.';
-      return;
-    }
-
-    if (!email.endsWith('@betha.com.br') && !email.endsWith('@betha.com')) {
-      emailErrorMsg.textContent = 'O e-mail deve pertencer ao domínio corporativo autorizado.';
+    if (!email || !email.includes('@') || !email.includes('.')) {
+      emailErrorMsg.textContent = 'Por favor, informe um e-mail válido (ex: seu.email@dominio.com).';
       return;
     }
 
