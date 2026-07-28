@@ -1,6 +1,5 @@
 /**
- * app.js — Controlador de Interface e Fluxo de Primeiro Acesso
- * Portal Colaborador DAS
+ * app.js — Controlador de Interface e Fluxo de Primeiro Acesso & Painel DAS
  */
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -86,7 +85,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // ------------------------------------------------------------------
-  // 2. ETAPA 1: VALIDAÇÃO DE E-MAIL (ACEITA QUALQUER E-MAIL DO USUÁRIO)
+  // 2. ETAPA 1: VALIDAÇÃO DE E-MAIL
   // ------------------------------------------------------------------
   if (btnStep1Next) {
     btnStep1Next.addEventListener('click', handleStep1);
@@ -237,9 +236,10 @@ document.addEventListener('DOMContentLoaded', () => {
   function renderSuccessStepDetails(emp) {
     const detailsContainer = document.getElementById('createdProfileDetails');
     if (detailsContainer && emp) {
+      const isSuper = emp.email.toLowerCase() === 'emanuel.alexandre@betha.com.br';
       detailsContainer.innerHTML = `
         <div style="background:#f4f5f7; border:1px solid #e0e0e0; padding:16px; border-radius:8px; text-align:left; font-size:0.9rem; margin-top:12px;">
-          <div style="font-weight:700; color:#1976d2; margin-bottom:6px;">Perfil Cadastrado com Sucesso:</div>
+          <div style="font-weight:700; color:#1976d2; margin-bottom:6px;">Perfil Cadastrado com Sucesso ${isSuper ? '(SUPERADMIN)' : ''}:</div>
           <div><strong>Colaborador:</strong> ${emp.nome}</div>
           <div><strong>E-mail:</strong> ${emp.email}</div>
           <div><strong>Cargo:</strong> ${emp.cargo}</div>
@@ -299,6 +299,8 @@ document.addEventListener('DOMContentLoaded', () => {
     viewFirstAccess.style.display = 'none';
     viewDashboard.style.display = 'flex';
 
+    const isSuper = emp.email.toLowerCase() === 'emanuel.alexandre@betha.com.br' || emp.isSuperAdmin;
+
     // Renderizar dados no Header
     userHeaderContainer.innerHTML = `
       <div class="user-profile-badge">
@@ -308,11 +310,18 @@ document.addEventListener('DOMContentLoaded', () => {
           <span style="font-size:0.75rem; color:#b0bec5;">${emp.cargo}</span>
         </div>
       </div>
+      ${isSuper ? `<a href="admin.html" class="btn-header-logout" style="background:#d32f2f; border-color:#d32f2f; color:#fff; font-weight:700; text-decoration:none;">PAINEL ADMIN</a>` : ''}
       <button id="btnLogout" class="btn-header-logout" title="Sair do Portal">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/></svg>
         Sair
       </button>
     `;
+
+    // Se for superadmin, adiciona o link no menu lateral também
+    const sidebarAdminLink = document.getElementById('sidebarAdminLink');
+    if (sidebarAdminLink) {
+      sidebarAdminLink.style.display = isSuper ? 'block' : 'none';
+    }
 
     document.getElementById('btnLogout').addEventListener('click', () => {
       window.bethaDB.clearSession();
@@ -338,7 +347,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const container = document.getElementById('numbersTableBody');
     if (!container) return;
 
-    if (!numeros || numeros.length === 0) {
+    // Junta números coletivos gerais com os específicos do colaborador
+    const globais = window.bethaDB.getNumerosGlobais();
+    const todosNumeros = [...globais, ...numeros];
+
+    if (todosNumeros.length === 0) {
       container.innerHTML = `
         <tr>
           <td colspan="4">
@@ -353,7 +366,7 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
-    container.innerHTML = numeros.map(n => `
+    container.innerHTML = todosNumeros.map(n => `
       <tr>
         <td style="font-weight:600; color:#1976d2;">${n.setor}</td>
         <td>${n.telefone}</td>

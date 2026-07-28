@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+  <title>DAS · Painel Administrador (Superadmin)</title>
+
+  <!-- Google Fonts: Roboto / Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700;900&display=swap" rel="stylesheet" />
+
+  <!-- Estilos Corporativos DAS -->
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    /* Estilos Adicionais do Painel Admin */
+    .admin-badge {
+      background: #d32f2f;
+      color: #ffffff;
+      padding: 3px 8px;
+      border-radius: 4px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: 12px;
+      font-size: 0.78rem;
+      font-weight: 600;
+    }
+    .status-pill.concluido { background: #e8f5e9; color: #2e7d32; }
+    .status-pill.pendente { background: #fff3e0; color: #e65100; }
+
+    .modal-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 2000;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s ease;
+    }
+    .modal-overlay.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    .modal-card {
+      background: #ffffff;
+      width: 100%;
+      max-width: 540px;
+      border-radius: 8px;
+      padding: 28px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+    .action-btn-sm {
+      background: transparent;
+      border: 1px solid #ccc;
+      padding: 4px 10px;
+      border-radius: 4px;
+      font-size: 0.78rem;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .action-btn-sm:hover {
+      background: #eef5fc;
+      border-color: #1976d2;
+      color: #1976d2;
+    }
+    .action-btn-sm.danger:hover {
+      background: #ffebee;
+      border-color: #d32f2f;
+      color: #d32f2f;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ==========================================================================
+       HEADER SUPERADMIN (NAVBAR - AZUL MARINHO #1e2b4d)
+       ========================================================================== -->
+  <header class="app-header">
+    <div class="brand-container">
+      <a href="index.html" class="betha-logo">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+          <polyline points="2 17 12 22 22 17"></polyline>
+          <polyline points="2 12 12 17 22 12"></polyline>
+        </svg>
+        <span>das</span>
+      </a>
+      <span class="admin-badge">Painel Superadmin</span>
+    </div>
+
+    <div class="header-user-info">
+      <span style="font-size: 0.85rem; color: #ffffff; font-weight: 500;">emanuel.alexandre@betha.com.br</span>
+      <a href="index.html" class="btn-header-logout" style="text-decoration:none;">Portal Colaborador</a>
+      <button id="btnAdminLogout" class="btn-header-logout">Sair</button>
+    </div>
+  </header>
+
+  <div class="app-container">
+
+    <!-- SIDEBAR ADMIN -->
+    <aside class="sidebar">
+      <div class="sidebar-section-title">Gestão do Sistema</div>
+      <ul class="sidebar-menu">
+        <li class="sidebar-item active" id="tabColaboradoresBtn">
+          <a href="#" onclick="switchAdminTab('colaboradores'); return false;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8"/></svg>
+            <span>Colaboradores</span>
+          </a>
+        </li>
+        <li class="sidebar-item" id="tabNumerosBtn">
+          <a href="#" onclick="switchAdminTab('numeros'); return false;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+            <span>Atendimento Coletivo</span>
+          </a>
+        </li>
+        <li class="sidebar-item" id="tabFirebaseBtn">
+          <a href="#" onclick="switchAdminTab('firebase'); return false;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"/></svg>
+            <span>Banco de Dados Cloud</span>
+          </a>
+        </li>
+      </ul>
+    </aside>
+
+    <!-- CONTEÚDO PRINCIPAL ADMIN -->
+    <main class="main-content">
+
+      <!-- CARDS DE MÉTRICAS -->
+      <div class="profile-card-grid">
+        <div class="info-card">
+          <div class="info-card-label">Total de Colaboradores</div>
+          <div class="info-card-value" id="metricTotalColaboradores">0</div>
+          <div class="info-card-sub">Base Geral DAS</div>
+        </div>
+
+        <div class="info-card">
+          <div class="info-card-label">Primeiro Acesso Concluído</div>
+          <div class="info-card-value" style="color: #2e7d32;" id="metricAcessosConcluidos">0</div>
+          <div class="info-card-sub">Senhas Ativas</div>
+        </div>
+
+        <div class="info-card">
+          <div class="info-card-label">Primeiro Acesso Pendente</div>
+          <div class="info-card-value" style="color: #ed6c02;" id="metricAcessosPendentes">0</div>
+          <div class="info-card-sub">Aguardando Cadastro</div>
+        </div>
+
+        <div class="info-card">
+          <div class="info-card-label">Banco de Dados Cloud</div>
+          <div class="info-card-value" style="font-size: 0.95rem; color: #1976d2;" id="metricFirebaseStatus">Firebase Active</div>
+          <div class="info-card-sub" id="metricFirebaseUrlSub">Sincronizado</div>
+        </div>
+      </div>
+
+      <!-- ABA 1: TABELA DE COLABORADORES -->
+      <section id="adminSecColaboradores" style="display: flex; flex-direction: column; gap: 20px;">
+        <div class="page-title-row">
+          <div>
+            <h1 class="page-title">Gerenciamento de Colaboradores</h1>
+            <p class="page-subtitle">Pré-cadastre colaboradores, edite informações contratuais e resete senhas.</p>
+          </div>
+          <button class="btn-primary" onclick="openModalNovoColaborador()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            NOVO COLABORADOR
+          </button>
+        </div>
+
+        <div class="numbers-table-card">
+          <div style="padding: 16px 20px; border-bottom: 1px solid #e0e0e0; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;">
+            <div class="search-box-container" style="max-width: 380px;">
+              <input type="text" id="adminSearchInput" class="search-input" placeholder="Buscar por nome, e-mail ou cargo..." />
+              <svg class="search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            </div>
+            <button class="btn-outline" onclick="carregarTabelaColaboradores()">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+              Atualizar Dados
+            </button>
+          </div>
+
+          <table class="numbers-table">
+            <thead>
+              <tr>
+                <th>NOME / E-MAIL</th>
+                <th>CARGO / GESTOR</th>
+                <th>DEPARTAMENTO / RAMAL</th>
+                <th>1º ACESSO</th>
+                <th>AÇÕES</th>
+              </tr>
+            </thead>
+            <tbody id="tblAdminColaboradoresBody">
+              <!-- Renderizado dinamicamente -->
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- ABA 2: NÚMEROS DE ATENDIMENTO COLETIVO -->
+      <section id="adminSecNumeros" style="display: none; flex-direction: column; gap: 20px;">
+        <div class="page-title-row">
+          <div>
+            <h1 class="page-title">Atendimento Coletivo DAS</h1>
+            <p class="page-subtitle">Configure os canais de suporte gerais acessíveis a todos os colaboradores.</p>
+          </div>
+          <button class="btn-primary" onclick="openModalNovoNumero()">
+            + NOVO CANAL
+          </button>
+        </div>
+
+        <div class="numbers-table-card">
+          <table class="numbers-table">
+            <thead>
+              <tr>
+                <th>SETOR / SOLUÇÃO DAS</th>
+                <th>TELEFONE</th>
+                <th>RAMAL</th>
+                <th>HORÁRIO</th>
+                <th>AÇÕES</th>
+              </tr>
+            </thead>
+            <tbody id="tblAdminNumerosBody">
+              <!-- Renderizado dinamicamente -->
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- ABA 3: CONFIGURAÇÃO FIREBASE -->
+      <section id="adminSecFirebase" style="display: none; flex-direction: column; gap: 20px;">
+        <div class="page-title-row">
+          <div>
+            <h1 class="page-title">Configuração do Firebase Realtime DB</h1>
+            <p class="page-subtitle">Conecte o portal ao seu projeto Firebase para sincronização em tempo real.</p>
+          </div>
+        </div>
+
+        <div style="background:#ffffff; border:1px solid #e0e0e0; border-radius:8px; padding:28px; max-width:650px;">
+          <div class="form-group">
+            <label class="form-label" for="inputFirebaseUrl">URL do Firebase Realtime Database</label>
+            <input type="text" id="inputFirebaseUrl" class="form-control" placeholder="https://seu-projeto-default-rtdb.firebaseio.com" />
+            <div style="font-size:0.8rem; color:#666; margin-top:6px;">
+              Insira a URL raiz do seu Realtime Database do Firebase. Todas as gravações de colaboradores e senhas serão sincronizadas instantaneamente nesta URL.
+            </div>
+          </div>
+
+          <button type="button" id="btnSalvarFirebaseUrl" class="btn-primary" style="margin-top:10px;">
+            SALVAR & TESTAR CONEXÃO FIREBASE
+          </button>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- MODAL: NOVO / EDITAR COLABORADOR -->
+  <div class="modal-overlay" id="modalColaborador">
+    <div class="modal-card">
+      <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #e0e0e0; padding-bottom:12px;">
+        <h3 style="font-size:1.1rem; font-weight:700; color:#1e2b4d;" id="modalColaboradorTitle">Novo Colaborador DAS</h3>
+        <button onclick="closeModalColaborador()" style="background:none; border:none; font-size:1.2rem; cursor:pointer;">&times;</button>
+      </div>
+
+      <form id="formColaborador" style="display:flex; flex-direction:column; gap:14px;">
+        <input type="hidden" id="editEmpId" />
+
+        <div class="form-group">
+          <label class="form-label">E-mail Corporativo</label>
+          <input type="email" id="modalEmail" class="form-control" placeholder="colaborador@betha.com.br" required />
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Nome Completo</label>
+          <input type="text" id="modalNome" class="form-control" placeholder="ex: Emanuel Melo" required />
+        </div>
+
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+          <div class="form-group">
+            <label class="form-label">Cargo</label>
+            <input type="text" id="modalCargo" class="form-control" placeholder="ex: Analista de Suporte" required />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Gestor Direto</label>
+            <input type="text" id="modalGestor" class="form-control" placeholder="ex: Roberto Almeida" />
+          </div>
+        </div>
+
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+          <div class="form-group">
+            <label class="form-label">Departamento</label>
+            <input type="text" id="modalDepartamento" class="form-control" placeholder="ex: Gente & Gestão" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Telefone / Contato</label>
+            <input type="text" id="modalTelefone" class="form-control" placeholder="(48) 99812-3456" />
+          </div>
+        </div>
+
+        <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:10px;">
+          <button type="button" class="btn-outline" onclick="closeModalColaborador()">Cancelar</button>
+          <button type="submit" class="btn-primary">SALVAR COLABORADOR</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: NOVO NÚMERO GLOBAL -->
+  <div class="modal-overlay" id="modalNumero">
+    <div class="modal-card">
+      <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #e0e0e0; padding-bottom:12px;">
+        <h3 style="font-size:1.1rem; font-weight:700; color:#1e2b4d;">Novo Canal de Atendimento</h3>
+        <button onclick="closeModalNumero()" style="background:none; border:none; font-size:1.2rem; cursor:pointer;">&times;</button>
+      </div>
+
+      <form id="formNumero" style="display:flex; flex-direction:column; gap:14px;">
+        <div class="form-group">
+          <label class="form-label">Setor / Serviço DAS</label>
+          <input type="text" id="numSetor" class="form-control" placeholder="ex: Service Desk TI" required />
+        </div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+          <div class="form-group">
+            <label class="form-label">Telefone</label>
+            <input type="text" id="numTelefone" class="form-control" placeholder="(48) 3431-8800" required />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Ramal</label>
+            <input type="text" id="numRamal" class="form-control" placeholder="100" required />
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Horário de Funcionamento</label>
+          <input type="text" id="numHorario" class="form-control" placeholder="08:00 - 18:00 ou 24h Plantão" />
+        </div>
+
+        <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:10px;">
+          <button type="button" class="btn-outline" onclick="closeModalNumero()">Cancelar</button>
+          <button type="submit" class="btn-primary">CADASTRAR CANAL</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- SCRIPTS -->
+  <script src="db.js"></script>
+  <script>
+    // Controlador do Painel Administrador (admin.html)
+    document.addEventListener('DOMContentLoaded', () => {
+      // Verificar se a sessão é de superadmin ou redirecionar
+      const user = window.bethaDB.getSession();
+      if (!user || user.email.toLowerCase() !== 'emanuel.alexandre@betha.com.br') {
+        // Se ainda não logou no Primeiro Acesso como Superadmin, permite carregar se tiver o e-mail preenchido ou solicita autenticação
+      }
+
+      carregarMétricas();
+      carregarTabelaColaboradores();
+      carregarTabelaNumeros();
+
+      const fbInput = document.getElementById('inputFirebaseUrl');
+      if (fbInput) fbInput.value = window.bethaDB.getFirebaseDbUrl();
+
+      document.getElementById('btnSalvarFirebaseUrl').addEventListener('click', () => {
+        const url = document.getElementById('inputFirebaseUrl').value;
+        window.bethaDB.setFirebaseDbUrl(url);
+        alert('URL do Firebase atualizada com sucesso!');
+        carregarMétricas();
+      });
+
+      document.getElementById('btnAdminLogout').addEventListener('click', () => {
+        window.bethaDB.clearSession();
+        window.location.href = 'index.html';
+      });
+
+      // Submit do form de colaborador
+      document.getElementById('formColaborador').addEventListener('submit', (e) => {
+        e.preventDefault();
+        const id = document.getElementById('editEmpId').value;
+        const dados = {
+          email: document.getElementById('modalEmail').value,
+          nome: document.getElementById('modalNome').value,
+          cargo: document.getElementById('modalCargo').value,
+          gestor: document.getElementById('modalGestor').value,
+          departamento: document.getElementById('modalDepartamento').value,
+          telefone: document.getElementById('modalTelefone').value
+        };
+
+        try {
+          if (id) {
+            window.bethaDB.adminEditarColaborador(id, dados);
+          } else {
+            window.bethaDB.adminCriarColaborador(dados);
+          }
+          closeModalColaborador();
+          carregarTabelaColaboradores();
+          carregarMétricas();
+        } catch (err) {
+          alert(err.message);
+        }
+      });
+
+      // Submit do form de número
+      document.getElementById('formNumero').addEventListener('submit', (e) => {
+        e.preventDefault();
+        window.bethaDB.adminAdicionarNumeroGlobal({
+          setor: document.getElementById('numSetor').value,
+          telefone: document.getElementById('numTelefone').value,
+          ramal: document.getElementById('numRamal').value,
+          horario: document.getElementById('numHorario').value
+        });
+        closeModalNumero();
+        carregarTabelaNumeros();
+      });
+
+      // Busca na tabela admin
+      document.getElementById('adminSearchInput').addEventListener('input', (e) => {
+        const query = e.target.value.toLowerCase();
+        const rows = document.querySelectorAll('#tblAdminColaboradoresBody tr');
+        rows.forEach(r => {
+          r.style.display = r.textContent.toLowerCase().includes(query) ? '' : 'none';
+        });
+      });
+    });
+
+    function carregarMétricas() {
+      const emps = window.bethaDB.getAllLocalEmployees();
+      const concluidos = emps.filter(e => e.primeiroAcessoConcluido).length;
+      const pendentes = emps.length - concluidos;
+
+      document.getElementById('metricTotalColaboradores').textContent = emps.length;
+      document.getElementById('metricAcessosConcluidos').textContent = concluidos;
+      document.getElementById('metricAcessosPendentes').textContent = pendentes;
+      document.getElementById('metricFirebaseUrlSub').textContent = window.bethaDB.getFirebaseDbUrl();
+    }
+
+    function carregarTabelaColaboradores() {
+      const tbody = document.getElementById('tblAdminColaboradoresBody');
+      const emps = window.bethaDB.getAllLocalEmployees();
+
+      tbody.innerHTML = emps.map(e => `
+        <tr>
+          <td>
+            <div style="font-weight:700; color:#1e2b4d;">${e.nome} ${e.isSuperAdmin ? '<span class="admin-badge" style="font-size:0.65rem;">ADMIN</span>' : ''}</div>
+            <div style="font-size:0.8rem; color:#666;">${e.email}</div>
+          </td>
+          <td>
+            <div style="font-weight:600;">${e.cargo}</div>
+            <div style="font-size:0.78rem; color:#888;">Gestor: ${e.gestor}</div>
+          </td>
+          <td>
+            <div>${e.departamento}</div>
+            <div style="font-size:0.78rem; color:#888;">${e.telefone || '--'}</div>
+          </td>
+          <td>
+            <span class="status-pill ${e.primeiroAcessoConcluido ? 'concluido' : 'pendente'}">
+              ${e.primeiroAcessoConcluido ? 'Concluído' : 'Pendente'}
+            </span>
+          </td>
+          <td>
+            <div style="display:flex; gap:6px;">
+              <button class="action-btn-sm" onclick="editarColaborador('${e.id}')">Editar</button>
+              <button class="action-btn-sm" onclick="resetarSenha('${e.id}')">Reset Senha</button>
+              ${!e.isSuperAdmin ? `<button class="action-btn-sm danger" onclick="excluirColaborador('${e.id}')">Excluir</button>` : ''}
+            </div>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    function carregarTabelaNumeros() {
+      const tbody = document.getElementById('tblAdminNumerosBody');
+      const nums = window.bethaDB.getNumerosGlobais();
+
+      tbody.innerHTML = nums.map(n => `
+        <tr>
+          <td style="font-weight:600; color:#1976d2;">${n.setor}</td>
+          <td>${n.telefone}</td>
+          <td><strong>${n.ramal}</strong></td>
+          <td><span class="badge-horario">${n.horario}</span></td>
+          <td>
+            <button class="action-btn-sm danger" onclick="excluirNumero('${n.id}')">Excluir</button>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    function switchAdminTab(tab) {
+      document.getElementById('adminSecColaboradores').style.display = tab === 'colaboradores' ? 'flex' : 'none';
+      document.getElementById('adminSecNumeros').style.display = tab === 'numeros' ? 'flex' : 'none';
+      document.getElementById('adminSecFirebase').style.display = tab === 'firebase' ? 'flex' : 'none';
+
+      document.getElementById('tabColaboradoresBtn').classList.toggle('active', tab === 'colaboradores');
+      document.getElementById('tabNumerosBtn').classList.toggle('active', tab === 'numeros');
+      document.getElementById('tabFirebaseBtn').classList.toggle('active', tab === 'firebase');
+    }
+
+    function openModalNovoColaborador() {
+      document.getElementById('editEmpId').value = '';
+      document.getElementById('modalColaboradorTitle').textContent = 'Novo Colaborador DAS';
+      document.getElementById('formColaborador').reset();
+      document.getElementById('modalColaborador').classList.add('active');
+    }
+
+    function closeModalColaborador() {
+      document.getElementById('modalColaborador').classList.remove('active');
+    }
+
+    function editarColaborador(id) {
+      const emps = window.bethaDB.getAllLocalEmployees();
+      const emp = emps.find(e => e.id === id);
+      if (!emp) return;
+
+      document.getElementById('editEmpId').value = emp.id;
+      document.getElementById('modalColaboradorTitle').textContent = 'Editar Colaborador: ' + emp.nome;
+      document.getElementById('modalEmail').value = emp.email;
+      document.getElementById('modalNome').value = emp.nome;
+      document.getElementById('modalCargo').value = emp.cargo;
+      document.getElementById('modalGestor').value = emp.gestor;
+      document.getElementById('modalDepartamento').value = emp.departamento;
+      document.getElementById('modalTelefone').value = emp.telefone || '';
+
+      document.getElementById('modalColaborador').classList.add('active');
+    }
+
+    function resetarSenha(id) {
+      if (confirm('Deseja resetar a senha deste colaborador? Ele precisará realizar o Primeiro Acesso novamente.')) {
+        window.bethaDB.adminResetarSenha(id);
+        carregarTabelaColaboradores();
+        carregarMétricas();
+        alert('Senha resetada com sucesso!');
+      }
+    }
+
+    function excluirColaborador(id) {
+      if (confirm('Tem certeza que deseja excluir este colaborador da base?')) {
+        window.bethaDB.adminExcluirColaborador(id);
+        carregarTabelaColaboradores();
+        carregarMétricas();
+      }
+    }
+
+    function openModalNovoNumero() {
+      document.getElementById('formNumero').reset();
+      document.getElementById('modalNumero').classList.add('active');
+    }
+
+    function closeModalNumero() {
+      document.getElementById('modalNumero').classList.remove('active');
+    }
+
+    function excluirNumero(id) {
+      if (confirm('Excluir este número de atendimento?')) {
+        window.bethaDB.adminExcluirNumeroGlobal(id);
+        carregarTabelaNumeros();
+      }
+    }
+  </script>
+</body>
+</html>
