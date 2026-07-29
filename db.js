@@ -1,18 +1,19 @@
 /**
  * db.js — Módulo de Banco de Dados do Portal Colaborador & Administrador DAS
- * Inclui Gestão de Remuneração Variável (RV) conforme norma CM-POL-Q-001.
+ * Suporta envio de código OTP do Primeiro Acesso ao E-mail do Superadmin (emanuel.alexandre@betha.com.br)
+ * e sincronização via Firebase REST API + LocalStorage.
  */
 
-const DAS_DB_LOCAL_KEY = 'das_colaboradores_db_v3';
-const DAS_NUMEROS_LOCAL_KEY = 'das_numeros_atendimento_v3';
-const DAS_RV_COLETIVO_KEY = 'das_rv_coletivo_v3';
-const DAS_SESSION_KEY = 'das_colaborador_session_v3';
+const DAS_DB_LOCAL_KEY = 'das_colaboradores_db_v4';
+const DAS_NUMEROS_LOCAL_KEY = 'das_numeros_atendimento_v4';
+const DAS_RV_COLETIVO_KEY = 'das_rv_coletivo_v4';
+const DAS_OTP_SOLICITACOES_KEY = 'das_otp_solicitacoes_v4';
+const DAS_SESSION_KEY = 'das_colaborador_session_v4';
 const DAS_FIREBASE_URL_KEY = 'das_firebase_db_url';
 
 const DEFAULT_FIREBASE_URL = 'https://ferramentasbrasil-default-rtdb.firebaseio.com';
 const SUPERADMIN_EMAIL = 'emanuel.alexandre@betha.com.br';
 
-// Indicadores Coletivos Padrão (75% da RV Total) conforme norma CM-POL-Q-001
 const DEFAULT_RV_COLETIVO = {
   eficienciaOperacional: { peso: 15, meta: '> 90%', realizado: 92, status: 'Superado' },
   tempoImplantação: { peso: 35, meta: 'Prazo Contratual', faixaSuperacao: '2.5%', realizadoPercentual: 60, status: 'Faixa 2' },
@@ -20,7 +21,6 @@ const DEFAULT_RV_COLETIVO = {
   receitaOperacionalManutencao: { peso: 35, meta: 'Tabela Portfólio', faixaSuperacao: '5%', realizadoPercentual: 60, status: 'Faixa 2' }
 };
 
-// Histórico mensal padrão de RV para o ciclo Julho-Dezembro (Valores oficiais de exemplo da norma)
 const DEFAULT_RV_HISTORICO_MENSAL = [
   { mes: 'Julho', csat: 94, csatMeta: 93, csatAtingido: true, horas: 95, horasMeta: 90, horasAtingido: true, rvIndividualPercent: 100, rvColetivoPercent: 45, tetoMes: 238.33 },
   { mes: 'Agosto', csat: 93, csatMeta: 93, csatAtingido: false, horas: 80, horasMeta: 90, horasAtingido: false, rvIndividualPercent: 0, rvColetivoPercent: 100, tetoMes: 238.33 },
@@ -107,6 +107,10 @@ class DasDB {
     this.syncFromFirebase();
   }
 
+  getSuperadminEmail() {
+    return SUPERADMIN_EMAIL;
+  }
+
   getFirebaseDbUrl() { return this.firebaseUrl; }
 
   setFirebaseDbUrl(url) {
@@ -171,9 +175,9 @@ class DasDB {
         const list = Array.isArray(cloudData) ? cloudData : Object.values(cloudData);
         if (list.length > 0) this.saveLocalEmployees(list);
       }
-      const cloudRv = await this.fbGet('das_rv_coletivo');
-      if (cloudRv) {
-        localStorage.setItem(DAS_RV_COLETIVO_KEY, JSON.stringify(cloudRv));
+      const cloudOtps = await this.fbGet('das_otp_solicitacoes');
+      if (cloudOtps) {
+        localStorage.setItem(DAS_OTP_SOLICITACOES_KEY, JSON.stringify(cloudOtps));
       }
     } catch (e) {
       console.log('Firebase offline ou pendente. Usando local DB:', e.message);
@@ -183,12 +187,47 @@ class DasDB {
   async syncToFirebase() {
     try {
       await this.fbSet('das_colaboradores', this.getAllLocalEmployees());
-      await this.fbSet('das_rv_coletivo', this.getRvColetivo());
+      await this.fbSet('das_otp_solicitacoes', this.getSolicitacoesOtp());
     } catch (e) {
       console.warn('Erro ao salvar no Firebase:', e.message);
     }
   }
 
+  // ------------------------------------------------------------------
+  // GESTÃO DE OTP ENVIADO AO SUPERADMIN
+  // ------------------------------------------------------------------
+  gerarOtpParaSuperAdmin(emailSolicitante) {
+    const codigo = Math.floor(100000 + Math.random() * 900000).toString();
+    const solicitacoes = this.getSolicitacoesOtp();
+    
+    const novaSolicitacao = {
+      id: 'otp_' + Date.now(),
+      emailSolicitante: emailSolicitante.trim().toLowerCase(),
+      emailSuperAdmin: SUPERADMIN_EMAIL,
+      codigo: codigo,
+      dataHora: new Date().toISOString(),
+      status: 'Enviado ao Superadmin'
+    };
+
+    solicitacoes.unshift(novaSolicitacao);
+    localStorage.setItem(DAS_OTP_SOLICITACOES_KEY, JSON.stringify(solicitacoes.slice(0, 50)));
+    this.syncToFirebase();
+
+    return novaSolicitacao;
+  }
+
+  getSolicitacoesOtp() {
+    try {
+      const data = localStorage.getItem(DAS_OTP_SOLICITACOES_KEY);
+      return data ? JSON.parse(data) : [];
+    } catch (e) {
+      return [];
+    }
+  }
+
+  // ------------------------------------------------------------------
+  // GESTÃO DE COLABORADORES
+  // ------------------------------------------------------------------
   getAllLocalEmployees() {
     try {
       const data = localStorage.getItem(DAS_DB_LOCAL_KEY);
@@ -252,7 +291,7 @@ class DasDB {
   }
 
   // ------------------------------------------------------------------
-  // GESTÃO DE RV (REMUNERAÇÃO VARIÁVEL CM-POL-Q-001)
+  // GESTÃO DE RV
   // ------------------------------------------------------------------
   getRvColetivo() {
     try {

@@ -1,10 +1,9 @@
 /**
  * app.js — Controlador de Interface e Fluxo de Primeiro Acesso & Painel DAS
- * Inclui o Módulo de Remuneração Variável (RV) conforme norma CM-POL-Q-001.
+ * Roteamento do código OTP ao E-mail do Superadmin (emanuel.alexandre@betha.com.br)
  */
 
 document.addEventListener('DOMContentLoaded', () => {
-  // Estado global do fluxo
   const state = {
     step: 1,
     email: '',
@@ -13,12 +12,10 @@ document.addEventListener('DOMContentLoaded', () => {
     modoLogin: false
   };
 
-  // Elementos DOM principais
   const viewFirstAccess = document.getElementById('viewFirstAccess');
   const viewDashboard = document.getElementById('viewDashboard');
   const userHeaderContainer = document.getElementById('userHeaderContainer');
 
-  // Elementos do Form de Primeiro Acesso
   const stepContainer1 = document.getElementById('stepContainer1');
   const stepContainer2 = document.getElementById('stepContainer2');
   const stepContainer3 = document.getElementById('stepContainer3');
@@ -32,7 +29,9 @@ document.addEventListener('DOMContentLoaded', () => {
   const inputOtp = document.getElementById('inputOtp');
   const btnStep2Next = document.getElementById('btnStep2Next');
   const btnResendOtp = document.getElementById('btnResendOtp');
+  const otpHintBox = document.getElementById('otpHintBox');
   const otpCodeSpan = document.getElementById('otpCodeSpan');
+  const otpEmailDestinoSpan = document.getElementById('otpEmailDestinoSpan');
 
   const inputSenha = document.getElementById('inputSenha');
   const inputConfirmarSenha = document.getElementById('inputConfirmarSenha');
@@ -43,22 +42,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const btnGoToDashboard = document.getElementById('btnGoToDashboard');
 
-  // Elementos do Formulário de Login Regular
   const inputLoginEmail = document.getElementById('inputLoginEmail');
   const inputLoginSenha = document.getElementById('inputLoginSenha');
   const btnDoLogin = document.getElementById('btnDoLogin');
   const loginErrorMsg = document.getElementById('loginErrorMsg');
 
-  // Alternadores de Modo
   const linkSwitchToLogin = document.getElementById('linkSwitchToLogin');
   const linkSwitchToFirstAccess = document.getElementById('linkSwitchToFirstAccess');
 
-  // Verificar se já existe uma sessão ativa ao carregar
   checkExistingSession();
 
-  // ------------------------------------------------------------------
-  // 1. ALTERNÂNCIA DE MODOS
-  // ------------------------------------------------------------------
   if (linkSwitchToLogin) {
     linkSwitchToLogin.addEventListener('click', (e) => {
       e.preventDefault();
@@ -85,7 +78,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // ------------------------------------------------------------------
-  // 2. ETAPA 1: VALIDAÇÃO DE E-MAIL
+  // ETAPA 1: VALIDAÇÃO DE E-MAIL & ENVIO DO OTP AO SUPERADMIN
   // ------------------------------------------------------------------
   if (btnStep1Next) {
     btnStep1Next.addEventListener('click', handleStep1);
@@ -115,15 +108,19 @@ document.addEventListener('DOMContentLoaded', () => {
     state.email = email;
     state.employeeData = emp;
 
-    state.otpGerado = Math.floor(100000 + Math.random() * 900000).toString();
-    otpCodeSpan.textContent = state.otpGerado;
+    // Gerar código OTP e registrar envio ao e-mail do Superadmin (emanuel.alexandre@betha.com.br)
+    const solicitacao = window.bethaDB.gerarOtpParaSuperAdmin(email);
+    state.otpGerado = solicitacao.codigo;
+    
+    if (otpCodeSpan) otpCodeSpan.textContent = state.otpGerado;
+    if (otpEmailDestinoSpan) otpEmailDestinoSpan.textContent = solicitacao.emailSuperAdmin;
 
     goToStep(2);
-    showToast('Código de verificação enviado para ' + email);
+    showToast('Código de verificação enviado ao Superadmin (' + solicitacao.emailSuperAdmin + ') para autorização.');
   }
 
   // ------------------------------------------------------------------
-  // 3. ETAPA 2: VERIFICAÇÃO DO CÓDIGO OTP
+  // ETAPA 2: VERIFICAÇÃO DO CÓDIGO OTP
   // ------------------------------------------------------------------
   if (btnStep2Next) {
     btnStep2Next.addEventListener('click', handleStep2);
@@ -131,16 +128,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
   if (btnResendOtp) {
     btnResendOtp.addEventListener('click', () => {
-      state.otpGerado = Math.floor(100000 + Math.random() * 900000).toString();
-      otpCodeSpan.textContent = state.otpGerado;
-      showToast('Novo código gerado com sucesso!');
+      const solicitacao = window.bethaDB.gerarOtpParaSuperAdmin(state.email);
+      state.otpGerado = solicitacao.codigo;
+      if (otpCodeSpan) otpCodeSpan.textContent = state.otpGerado;
+      showToast('Novo código reenviado ao Superadmin (' + solicitacao.emailSuperAdmin + ')!');
     });
   }
 
   function handleStep2() {
     const code = inputOtp.value.trim();
     if (code !== state.otpGerado) {
-      showToast('Código inválido. Digite o código de 6 dígitos exibido no quadro.', 'error');
+      showToast('Código inválido. Insira o código de 6 dígitos enviado ao e-mail do Superadmin.', 'error');
       return;
     }
 
@@ -148,7 +146,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // ------------------------------------------------------------------
-  // 4. ETAPA 3: CRIAÇÃO DE SENHA E MEDIDOR DE FORÇA
+  // ETAPA 3: CRIAÇÃO DE SENHA E MEDIDOR DE FORÇA
   // ------------------------------------------------------------------
   if (inputSenha) {
     inputSenha.addEventListener('input', updatePasswordStrength);
@@ -234,7 +232,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const isSuper = emp.email.toLowerCase() === 'emanuel.alexandre@betha.com.br';
       detailsContainer.innerHTML = `
         <div style="background:#f4f5f7; border:1px solid #e0e0e0; padding:16px; border-radius:8px; text-align:left; font-size:0.9rem; margin-top:12px;">
-          <div style="font-weight:700; color:#1976d2; margin-bottom:6px;">Perfil Cadastrado com Sucesso ${isSuper ? '(SUPERADMIN)' : ''}:</div>
+          <div style="font-weight:700; color:#1976d2; margin-bottom:6px;">Perfil Autorizado pelo Superadmin & Cadastrado ${isSuper ? '(SUPERADMIN)' : ''}:</div>
           <div><strong>Colaborador:</strong> ${emp.nome}</div>
           <div><strong>E-mail:</strong> ${emp.email}</div>
           <div><strong>Cargo:</strong> ${emp.cargo}</div>
@@ -245,9 +243,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // ------------------------------------------------------------------
-  // 5. ETAPA 4: NAVEGAÇÃO PARA O DASHBOARD
-  // ------------------------------------------------------------------
   if (btnGoToDashboard) {
     btnGoToDashboard.addEventListener('click', () => {
       window.bethaDB.setSession(state.employeeData);
@@ -255,9 +250,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // ------------------------------------------------------------------
-  // 6. FORMULÁRIO DE LOGIN REGULAR
-  // ------------------------------------------------------------------
   if (btnDoLogin) {
     btnDoLogin.addEventListener('click', handleLogin);
   }
@@ -286,16 +278,12 @@ document.addEventListener('DOMContentLoaded', () => {
     showDashboard(res.employee);
   }
 
-  // ------------------------------------------------------------------
-  // 7. DASHBOARD E MÓDULO DE REMUNERAÇÃO VARIÁVEL (RV CM-POL-Q-001)
-  // ------------------------------------------------------------------
   function showDashboard(emp) {
     viewFirstAccess.style.display = 'none';
     viewDashboard.style.display = 'flex';
 
     const isSuper = emp.email.toLowerCase() === 'emanuel.alexandre@betha.com.br' || emp.isSuperAdmin;
 
-    // Renderizar dados no Header
     userHeaderContainer.innerHTML = `
       <div class="user-profile-badge">
         <div class="avatar-circle">${emp.nome.charAt(0)}</div>
@@ -321,7 +309,6 @@ document.addEventListener('DOMContentLoaded', () => {
       window.location.reload();
     });
 
-    // Preencher Meus Dados
     document.getElementById('dashNomeColaborador').textContent = emp.nome;
     document.getElementById('dashEmailColaborador').textContent = emp.email;
     document.getElementById('dashCargoColaborador').textContent = emp.cargo;
@@ -330,26 +317,18 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('dashTelefoneColaborador').textContent = emp.telefone || '(48) 99812-3456';
     document.getElementById('dashUnidadeColaborador').textContent = emp.unidade || 'Matriz DAS';
 
-    // Renderizar Módulo de Remuneração Variável (RV)
     renderModuloRV(emp);
-
-    // Renderizar tabela de números de atendimento
     renderNumbersTable(emp.numerosAtendimento || []);
 
     showToast('Bem-vindo ao Portal Colaborador DAS, ' + emp.nome + '!');
   }
 
-  /**
-   * Renderiza os indicadores visuais e o cálculo da RV de acordo com a norma CM-POL-Q-001
-   */
   function renderModuloRV(emp) {
     const rvAtual = emp.rvAtual || { csat: 94, horasProdutivas: 95, metaCsat: 93, metaHoras: 90 };
     const tetoSemestral = emp.tetoSemestralRV || 1430.00;
 
-    // Atualizar Teto semestral no topo
     document.getElementById('rvTetoValor').textContent = 'R$ ' + tetoSemestral.toLocaleString('pt-BR', { minimumFractionDigits: 2 });
 
-    // CSAT
     document.getElementById('rvCsatRealizado').textContent = rvAtual.csat + '%';
     const csatSuperado = rvAtual.csat > (rvAtual.metaCsat || 93);
     const badgeCsat = document.getElementById('badgeStatusCsat');
@@ -359,7 +338,6 @@ document.addEventListener('DOMContentLoaded', () => {
     barCsat.style.width = Math.min(rvAtual.csat, 100) + '%';
     barCsat.style.backgroundColor = csatSuperado ? '#2e7d32' : '#d32f2f';
 
-    // HORAS PRODUTIVAS
     document.getElementById('rvHorasRealizado').textContent = rvAtual.horasProdutivas + '%';
     const horasSuperado = rvAtual.horasProdutivas > (rvAtual.metaHoras || 90);
     const badgeHoras = document.getElementById('badgeStatusHoras');
@@ -369,7 +347,6 @@ document.addEventListener('DOMContentLoaded', () => {
     barHoras.style.width = Math.min(rvAtual.horasProdutivas, 100) + '%';
     barHoras.style.backgroundColor = horasSuperado ? '#2e7d32' : '#d32f2f';
 
-    // Tabela de Histórico e Cálculo Semestral (Julho a Dezembro)
     renderTabelaHistoricoRV(emp);
   }
 
@@ -384,9 +361,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let totalSemestre = 0;
 
     tbody.innerHTML = historico.map(item => {
-      // Fórmula oficial: RV Individual = (TetoMensal * 0.25) * (% RV Individual)
       const valorIndividual = (tetoMensal * 0.25) * (item.rvIndividualPercent / 100);
-      // RV Coletiva = (TetoMensal * 0.75) * (% RV Coletiva)
       const valorColetivo = (tetoMensal * 0.75) * (item.rvColetivoPercent / 100);
       const valorTotalMes = valorIndividual + valorColetivo;
 
@@ -448,9 +423,6 @@ document.addEventListener('DOMContentLoaded', () => {
     `).join('');
   }
 
-  // ------------------------------------------------------------------
-  // 8. HELPERS & NAVEGAÇÃO DE PASSOS DO WIZARD
-  // ------------------------------------------------------------------
   function goToStep(stepNum) {
     state.step = stepNum;
 

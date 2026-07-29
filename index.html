@@ -14,7 +14,6 @@
   <!-- Estilos Corporativos DAS -->
   <link rel="stylesheet" href="styles.css" />
   <style>
-    /* Estilos Específicos para o Módulo de RV */
     .rv-metric-card {
       background: #ffffff;
       border: 1px solid var(--border-color);
@@ -140,7 +139,7 @@
             <div id="firstAccessWizard" style="display: flex; flex-direction: column; gap: 20px;">
               <div style="text-align: center;">
                 <h1 class="page-title" style="font-size: 1.4rem; font-weight: 700; color: #1976d2;">Primeiro Acesso DAS</h1>
-                <p class="page-subtitle">Valide seu e-mail corporativo para criar sua senha e visualizar suas informações individualizadas.</p>
+                <p class="page-subtitle">Valide seu e-mail corporativo para solicitar a autorização de acesso ao Superadmin.</p>
               </div>
 
               <!-- Indicador de Passos (Step Wizard Bar) -->
@@ -167,7 +166,7 @@
               <div id="stepContainer1">
                 <div class="form-group">
                   <label class="form-label" for="inputEmail">E-mail Corporativo</label>
-                  <input type="email" id="inputEmail" class="form-control" placeholder="exemplo@betha.com.br" value="emanuel.alexandre@betha.com.br" />
+                  <input type="email" id="inputEmail" class="form-control" placeholder="exemplo@betha.com.br" value="colaborador@betha.com.br" />
                   <div id="emailErrorMsg" style="color: #d32f2f; font-size: 0.78rem; margin-top: 4px; font-weight: 500;"></div>
                 </div>
 
@@ -180,22 +179,23 @@
                 </div>
               </div>
 
-              <!-- PASSO 2: CÓDIGO DE VERIFICAÇÃO OTP -->
+              <!-- PASSO 2: CÓDIGO DE VERIFICAÇÃO OTP ENVIADO AO SUPERADMIN -->
               <div id="stepContainer2" style="display: none;">
-                <div class="otp-demo-hint" id="otpHintBox">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+                <div class="otp-demo-hint" id="otpHintBox" style="background:#e8f5e9; border-color:#a5d6a7; color:#1b5e20;">
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
                   <div>
-                    <strong>Código enviado!</strong> Para fins de validação no ambiente de testes, utilize o código: <strong id="otpCodeSpan" style="font-size: 1.1rem; color: #1565c0; text-decoration: underline;">------</strong>
+                    <strong>Código enviado ao Superadmin!</strong> O código de autorização foi enviado para <strong id="otpEmailDestinoSpan" style="color:#1b5e20;">emanuel.alexandre@betha.com.br</strong>.<br/>
+                    <span style="font-size:0.8rem; color:#2e7d32;">Código gerado para validação: <strong id="otpCodeSpan" style="font-size: 1.1rem; text-decoration: underline;">------</strong></span>
                   </div>
                 </div>
 
                 <div class="form-group" style="margin-top: 16px;">
-                  <label class="form-label" for="inputOtp">Código de 6 dígitos</label>
+                  <label class="form-label" for="inputOtp">Código de 6 dígitos enviado ao Superadmin</label>
                   <input type="text" id="inputOtp" class="form-control" placeholder="000000" maxlength="6" style="letter-spacing: 0.25em; text-align: center; font-size: 1.2rem; font-weight: 700;" />
                 </div>
 
                 <div style="display: flex; align-items: center; justify-content: space-between;">
-                  <button type="button" id="btnResendOtp" class="btn-outline" style="font-size: 0.8rem;">Reenviar Código</button>
+                  <button type="button" id="btnResendOtp" class="btn-outline" style="font-size: 0.8rem;">Reenviar ao Superadmin</button>
                   <button type="button" id="btnStep2Next" class="btn-primary">
                     VERIFICAR CÓDIGO
                   </button>
@@ -254,7 +254,7 @@
 
               <div class="form-group">
                 <label class="form-label" for="inputLoginEmail">E-mail Corporativo</label>
-                <input type="email" id="inputLoginEmail" class="form-control" placeholder="seu.email@betha.com.br" value="emanuel.alexandre@betha.com.br" />
+                <input type="email" id="inputLoginEmail" class="form-control" placeholder="seu.email@betha.com.br" value="colaborador@betha.com.br" />
               </div>
 
               <div class="form-group">
